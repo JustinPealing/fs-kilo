@@ -6,7 +6,10 @@ let rec readloop() =
         printfn "%d" (int key.KeyChar)
     else
         printfn "%d ('%c')" (int key.KeyChar) key.KeyChar
-    readloop() 
+    if key.Modifiers.HasFlag(ConsoleModifiers.Control) && key.Key = ConsoleKey.Q then
+        ()
+    else
+        readloop()
 
 [<EntryPoint>]
 let main argv =
