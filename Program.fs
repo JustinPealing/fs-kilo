@@ -51,6 +51,8 @@ let editorMoveCursor (key:ConsoleKey) =
     | ConsoleKey.DownArrow -> if e.cy < Console.WindowHeight then e <- { e with cy = e.cy + 1 }
     | ConsoleKey.PageUp -> e <- { e with cy = 0 }
     | ConsoleKey.PageDown -> e <- { e with cy = Console.WindowHeight - 1 }
+    | ConsoleKey.Home -> e <- { e with cx = 0 }
+    | ConsoleKey.End -> e <- { e with cx = Console.WindowWidth - 1 }
     | _ -> ()
 
 let editorProcessKeypress() =
