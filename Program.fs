@@ -1,4 +1,5 @@
 ﻿open System
+open System.IO
 open System.Text
 
 type EditorConfig = {
@@ -82,8 +83,8 @@ let editorProcessKeypress e =
     | _ ->
         editorMoveCursor e c.Key
 
-let editorOpen e = 
-    { e with rows = [|"Hello, world!"|] }
+let editorOpen (filename:string) e = 
+    { e with rows = File.ReadAllLines filename }
 
 [<EntryPoint>]
 let main argv =
@@ -92,6 +93,6 @@ let main argv =
         readloop (editorProcessKeypress e)
 
     initEditor()
-    |> editorOpen
+    |> if argv.Length > 0 then editorOpen argv.[0] else id
     |> readloop
     0
