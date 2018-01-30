@@ -31,7 +31,7 @@ let (|Ctrl|_|) k =
 let editorDrawRows e ab =
     for y in [0..Console.WindowHeight - 1] do
         if y >= e.rows.Length then
-            if y = Console.WindowHeight / 3 then
+            if e.rows.Length = 0 && y = Console.WindowHeight / 3 then
                 let welcomeMessage = "FS-Kilo editor -- version 0.0.1"
                 let length = min welcomeMessage.Length e.screencols
                 let padding = (e.screencols - length) / 2
