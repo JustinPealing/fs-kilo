@@ -1,12 +1,19 @@
 ﻿open System
 open System.Text
 
+type EditorConfig = {
+    cx: int;
+    cy: int;
+}
+
 type AppendBuffer = {
     sb: StringBuilder
 }
 
 let abAppend ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
+
+let mutable e = { cx = 0; cy = 0 }
 
 let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40))
@@ -32,8 +39,16 @@ let editorRefreshScreen() =
     Console.CursorVisible <- false
     Console.SetCursorPosition(0,0)
     Console.Write(ab.sb.ToString())
-    Console.SetCursorPosition(0,0)
+    Console.SetCursorPosition(e.cx, e.cy)
     Console.CursorVisible <- true
+
+let editorMoveCursor (key:char) = 
+    match key with
+    | 'a' -> e <- { e with cx = e.cx - 1 }
+    | 'd' -> e <- { e with cx = e.cx + 1 }
+    | 'w' -> e <- { e with cy = e.cy - 1 }
+    | 's' -> e <- { e with cy = e.cy + 1 }
+    | _ -> ()
 
 let editorProcessKeypress() =
     let c = (Console.ReadKey true).KeyChar
@@ -42,7 +57,7 @@ let editorProcessKeypress() =
         Console.SetCursorPosition(0,0)
         Console.Clear()
         exit 0
-    | _ -> ()
+    | _ -> editorMoveCursor c
 
 [<EntryPoint>]
 let main argv =
