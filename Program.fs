@@ -10,6 +10,7 @@ let processKeypress k =
     | _ -> ()
 
 let rec readloop() = 
+    Console.Clear()
     let key = Console.ReadKey true
     processKeypress key.KeyChar
     readloop()
