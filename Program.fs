@@ -42,22 +42,22 @@ let editorRefreshScreen() =
     Console.SetCursorPosition(e.cx, e.cy)
     Console.CursorVisible <- true
 
-let editorMoveCursor (key:char) = 
+let editorMoveCursor (key:ConsoleKey) = 
     match key with
-    | 'a' -> e <- { e with cx = e.cx - 1 }
-    | 'd' -> e <- { e with cx = e.cx + 1 }
-    | 'w' -> e <- { e with cy = e.cy - 1 }
-    | 's' -> e <- { e with cy = e.cy + 1 }
+    | ConsoleKey.LeftArrow -> e <- { e with cx = e.cx - 1 }
+    | ConsoleKey.RightArrow -> e <- { e with cx = e.cx + 1 }
+    | ConsoleKey.UpArrow -> e <- { e with cy = e.cy - 1 }
+    | ConsoleKey.DownArrow -> e <- { e with cy = e.cy + 1 }
     | _ -> ()
 
 let editorProcessKeypress() =
-    let c = (Console.ReadKey true).KeyChar
-    match c with
+    let c = Console.ReadKey true
+    match c.KeyChar with
     | Ctrl 'Q' ->
         Console.SetCursorPosition(0,0)
         Console.Clear()
         exit 0
-    | _ -> editorMoveCursor c
+    | _ -> editorMoveCursor c.Key
 
 [<EntryPoint>]
 let main argv =
