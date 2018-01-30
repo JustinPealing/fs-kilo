@@ -16,10 +16,12 @@ let editorDrawRows ab =
     for y in [0..Console.WindowHeight - 1] do
         if (y = Console.WindowHeight / 3) then
             let welcomeMessage = "FS-Kilo editor -- version 0.0.1"
-            if welcomeMessage.Length > Console.WindowWidth then
-                abAppend ab (welcomeMessage.Substring(0, Console.WindowWidth))
+            let length = min welcomeMessage.Length Console.WindowWidth
+            let padding = (Console.WindowWidth - length) / 2
+            if padding > 0 then
+                abAppend ab ("~".PadRight(padding, ' ') + welcomeMessage)
             else
-                abAppend ab welcomeMessage
+                abAppend ab (welcomeMessage.Substring(0, length))
         else
             abAppend ab "~"
 
