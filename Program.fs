@@ -6,6 +6,7 @@ type EditorConfig = {
     screencols: int;
     cx: int;
     cy: int;
+    rows: string[];
 }
 
 type AppendBuffer = {
@@ -15,7 +16,12 @@ type AppendBuffer = {
 let abAppend  ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
 
-let initEditor = { cx = 0; cy = 0; screenrows = Console.WindowHeight; screencols = Console.WindowWidth }
+let initEditor() = {
+    cx = 0; cy = 0;
+    screenrows = Console.WindowHeight;
+    screencols = Console.WindowWidth;
+    rows = [||]
+}
 
 let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40))
@@ -23,16 +29,21 @@ let (|Ctrl|_|) k =
 
 let editorDrawRows e ab =
     for y in [0..Console.WindowHeight - 1] do
-        if (y = Console.WindowHeight / 3) then
-            let welcomeMessage = "FS-Kilo editor -- version 0.0.1"
-            let length = min welcomeMessage.Length e.screencols
-            let padding = (e.screencols - length) / 2
-            if padding > 0 then
-                abAppend ab ("~".PadRight(padding, ' ') + welcomeMessage)
+        if y >= e.rows.Length then
+            if y = Console.WindowHeight / 3 then
+                let welcomeMessage = "FS-Kilo editor -- version 0.0.1"
+                let length = min welcomeMessage.Length e.screencols
+                let padding = (e.screencols - length) / 2
+                if padding > 0 then
+                    abAppend ab ("~".PadRight(padding, ' ') + welcomeMessage)
+                else
+                    abAppend ab (welcomeMessage.Substring(0, length))
             else
-                abAppend ab (welcomeMessage.Substring(0, length))
+                abAppend ab "~"
         else
-            abAppend ab "~"
+            let len = min e.rows.[y].Length e.screencols
+            let line = e.rows.[y].Substring(0, len)
+            abAppend ab line
 
 let editorRefreshScreen e =
     let ab = {sb = new StringBuilder()}
@@ -71,10 +82,16 @@ let editorProcessKeypress e =
     | _ ->
         editorMoveCursor e c.Key
 
+let editorOpen e = 
+    { e with rows = [|"Hello, world!"|] }
+
 [<EntryPoint>]
 let main argv =
     let rec readloop e = 
         editorRefreshScreen e
         readloop (editorProcessKeypress e)
-    readloop initEditor 
+
+    initEditor()
+    |> editorOpen
+    |> readloop
     0
