@@ -9,7 +9,7 @@ let resetScreen() =
     Console.SetCursorPosition(0,0)
 
 let drawRows() =
-    for y in [0..23] do
+    for y in [0..Console.WindowHeight - 1] do
         printfn "~"
 
 let refreshScreen() =
