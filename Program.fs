@@ -2,6 +2,11 @@
 open System.IO
 open System.Text
 
+type ERow = {
+    chars: string
+    render: string
+}
+
 type EditorConfig = {
     cx: int;
     cy: int;
@@ -9,7 +14,7 @@ type EditorConfig = {
     coloff: int;
     screenrows: int;
     screencols: int;
-    rows: string[];
+    rows: ERow[];
 }
 
 type AppendBuffer = {
@@ -56,9 +61,9 @@ let editorDrawRows e ab =
             else
                 abAppend ab "~"
         else
-            let len = min (max 0 (e.rows.[filterrow].Length - e.coloff)) e.screencols
-            let start = min e.rows.[filterrow].Length e.coloff
-            let line = e.rows.[filterrow].Substring(start, len)
+            let len = min (max 0 (e.rows.[filterrow].render.Length - e.coloff)) e.screencols
+            let start = min e.rows.[filterrow].render.Length e.coloff
+            let line = e.rows.[filterrow].render.Substring(start, len)
             abAppend ab line
 
 let editorRefreshScreen e =
@@ -75,12 +80,17 @@ let editorRefreshScreen e =
 
 let editorMoveCursor e (key:ConsoleKey) = 
     let handlekey e = 
-        let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].Length
+        let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].render.Length
         match key with
         | ConsoleKey.LeftArrow when e.cx > 0 ->
             { e with cx = e.cx - 1 }
+        | ConsoleKey.LeftArrow when e.cy > 0 ->
+            let cy = e.cy - 1
+            { e with cy = cy; cx = e.rows.[cy].render.Length }
         | ConsoleKey.RightArrow when e.cx < rowlen ->
             { e with cx = e.cx + 1 }
+        | ConsoleKey.RightArrow when e.cx = rowlen ->
+            { e with cy = e.cy + 1; cx = 0 }
         | ConsoleKey.UpArrow when e.cy > 0 ->
             { e with cy = e.cy - 1 }
         | ConsoleKey.DownArrow when e.cy < e.rows.Length ->
@@ -94,7 +104,9 @@ let editorMoveCursor e (key:ConsoleKey) =
         | _ -> e
 
     let result = handlekey e
-    let rowlen = if result.cy >= e.rows.Length then 0 else e.rows.[result.cy].Length
+    let rowlen = 
+        if result.cy >= e.rows.Length then 0
+        else e.rows.[result.cy].render.Length
     if result.cx > rowlen then { result with cx = rowlen } else result
 
 let editorProcessKeypress e =
@@ -107,8 +119,11 @@ let editorProcessKeypress e =
     | _ ->
         editorMoveCursor e c.Key
 
+let editorRow (s:string) = 
+    { chars = s; render = s.Replace("\t", "    ") }
+
 let editorOpen (filename:string) e = 
-    { e with rows = File.ReadAllLines filename }
+    { e with rows = File.ReadAllLines filename |> Array.map editorRow }
 
 [<EntryPoint>]
 let main argv =
