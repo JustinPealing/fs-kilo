@@ -2,6 +2,8 @@
 open System.Text
 
 type EditorConfig = {
+    screenrows: int;
+    screencols: int;
     cx: int;
     cy: int;
 }
@@ -10,21 +12,21 @@ type AppendBuffer = {
     sb: StringBuilder
 }
 
-let abAppend ab (s:string) = 
+let abAppend  ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
 
-let initEditor = { cx = 0; cy = 0; }
+let initEditor = { cx = 0; cy = 0; screenrows = Console.WindowHeight; screencols = Console.WindowWidth }
 
 let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40))
     else None
 
-let editorDrawRows ab =
+let editorDrawRows e ab =
     for y in [0..Console.WindowHeight - 1] do
         if (y = Console.WindowHeight / 3) then
             let welcomeMessage = "FS-Kilo editor -- version 0.0.1"
-            let length = min welcomeMessage.Length Console.WindowWidth
-            let padding = (Console.WindowWidth - length) / 2
+            let length = min welcomeMessage.Length e.screencols
+            let padding = (e.screencols - length) / 2
             if padding > 0 then
                 abAppend ab ("~".PadRight(padding, ' ') + welcomeMessage)
             else
@@ -34,7 +36,7 @@ let editorDrawRows ab =
 
 let editorRefreshScreen e =
     let ab = {sb = new StringBuilder()}
-    editorDrawRows ab
+    editorDrawRows e ab
 
     Console.CursorVisible <- false
     Console.SetCursorPosition(0,0)
@@ -47,16 +49,16 @@ let editorMoveCursor e (key:ConsoleKey) =
     match key with
     | ConsoleKey.LeftArrow when e.cx > 0 ->
         { e with cx = e.cx - 1 }
-    | ConsoleKey.RightArrow when e.cx < Console.WindowWidth ->
+    | ConsoleKey.RightArrow when e.cx < e.screencols ->
         { e with cx = e.cx + 1 }
     | ConsoleKey.UpArrow when e.cy > 0 ->
         { e with cy = e.cy - 1 }
-    | ConsoleKey.DownArrow when e.cy < Console.WindowHeight ->
+    | ConsoleKey.DownArrow when e.cy < e.screencols ->
         { e with cy = e.cy + 1 }
     | ConsoleKey.PageUp -> { e with cy = 0 }
-    | ConsoleKey.PageDown -> { e with cy = Console.WindowHeight - 1 }
+    | ConsoleKey.PageDown -> { e with cy = e.screenrows - 1 }
     | ConsoleKey.Home -> { e with cx = 0 }
-    | ConsoleKey.End -> { e with cx = Console.WindowWidth - 1 }
+    | ConsoleKey.End -> { e with cx = e.screencols - 1 }
     | _ -> e
 
 let editorProcessKeypress e =
