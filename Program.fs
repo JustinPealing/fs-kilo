@@ -120,7 +120,7 @@ let editorProcessKeypress e =
     | _ ->
         editorMoveCursor e c.Key
 
-let editorRow (s:string) = 
+let editorRow s = 
     { chars = s; render = s.Replace("\t", "".PadRight(4, ' ')) }
 
 let editorOpen (filename:string) e = 
@@ -129,8 +129,7 @@ let editorOpen (filename:string) e =
 [<EntryPoint>]
 let main argv =
     let rec readloop e = 
-        e
-        |> editorScroll
+        editorScroll e
         |> editorRefreshScreen
         |> editorProcessKeypress
         |> readloop
