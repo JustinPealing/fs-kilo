@@ -74,22 +74,28 @@ let editorRefreshScreen e =
     e
 
 let editorMoveCursor e (key:ConsoleKey) = 
-    match key with
-    | ConsoleKey.LeftArrow when e.cx > 0 ->
-        { e with cx = e.cx - 1 }
-    | ConsoleKey.RightArrow ->
-        { e with cx = e.cx + 1 }
-    | ConsoleKey.UpArrow when e.cy > 0 ->
-        { e with cy = e.cy - 1 }
-    | ConsoleKey.DownArrow when e.cy < e.rows.Length ->
-        { e with cy = e.cy + 1 }
-    | ConsoleKey.PageUp ->
-        { e with cy = max 0 (e.cy - e.screenrows) }
-    | ConsoleKey.PageDown ->
-        { e with cy = min e.rows.Length (e.cy + e.screenrows) }
-    | ConsoleKey.Home -> { e with cx = 0 }
-    | ConsoleKey.End -> { e with cx = e.screencols - 1 }
-    | _ -> e
+    let handlekey e = 
+        let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].Length
+        match key with
+        | ConsoleKey.LeftArrow when e.cx > 0 ->
+            { e with cx = e.cx - 1 }
+        | ConsoleKey.RightArrow when e.cx < rowlen ->
+            { e with cx = e.cx + 1 }
+        | ConsoleKey.UpArrow when e.cy > 0 ->
+            { e with cy = e.cy - 1 }
+        | ConsoleKey.DownArrow when e.cy < e.rows.Length ->
+            { e with cy = e.cy + 1 }
+        | ConsoleKey.PageUp ->
+            { e with cy = max 0 (e.cy - e.screenrows) }
+        | ConsoleKey.PageDown ->
+            { e with cy = min e.rows.Length (e.cy + e.screenrows) }
+        | ConsoleKey.Home -> { e with cx = 0 }
+        | ConsoleKey.End -> { e with cx = e.screencols - 1 }
+        | _ -> e
+
+    let result = handlekey e
+    let rowlen = if result.cy >= e.rows.Length then 0 else e.rows.[result.cy].Length
+    if result.cx > rowlen then { result with cx = rowlen } else result
 
 let editorProcessKeypress e =
     let c = Console.ReadKey true
