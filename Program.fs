@@ -77,8 +77,10 @@ let editorMoveCursor e (key:ConsoleKey) =
         { e with cy = e.cy - 1 }
     | ConsoleKey.DownArrow when e.cy < e.rows.Length ->
         { e with cy = e.cy + 1 }
-    | ConsoleKey.PageUp -> { e with cy = 0 }
-    | ConsoleKey.PageDown -> { e with cy = e.screenrows - 1 }
+    | ConsoleKey.PageUp ->
+        { e with cy = max 0 (e.cy - e.screenrows) }
+    | ConsoleKey.PageDown ->
+        { e with cy = min e.rows.Length (e.cy + e.screenrows) }
     | ConsoleKey.Home -> { e with cx = 0 }
     | ConsoleKey.End -> { e with cx = e.screencols - 1 }
     | _ -> e
