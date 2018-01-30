@@ -44,10 +44,10 @@ let editorRefreshScreen() =
 
 let editorMoveCursor (key:ConsoleKey) = 
     match key with
-    | ConsoleKey.LeftArrow -> e <- { e with cx = e.cx - 1 }
-    | ConsoleKey.RightArrow -> e <- { e with cx = e.cx + 1 }
-    | ConsoleKey.UpArrow -> e <- { e with cy = e.cy - 1 }
-    | ConsoleKey.DownArrow -> e <- { e with cy = e.cy + 1 }
+    | ConsoleKey.LeftArrow -> if e.cx > 0 then e <- { e with cx = e.cx - 1 }
+    | ConsoleKey.RightArrow -> if e.cx < Console.WindowWidth then e <- { e with cx = e.cx + 1 }
+    | ConsoleKey.UpArrow -> if e.cy > 0 then e <- { e with cy = e.cy - 1 }
+    | ConsoleKey.DownArrow -> if e.cy < Console.WindowHeight then e <- { e with cy = e.cy + 1 }
     | _ -> ()
 
 let editorProcessKeypress() =
