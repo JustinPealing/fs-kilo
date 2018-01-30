@@ -2,16 +2,16 @@
 open System.IO
 open System.Text
 
+let tabstop = 4
+
 type ERow = {
     chars: string
     render: string
 }
 
 type EditorConfig = {
-    cx: int;
-    cy: int;
-    rowoff: int;
-    coloff: int;
+    cx: int; cy: int; rx: int;
+    rowoff: int; coloff: int;
     screenrows: int;
     screencols: int;
     rows: ERow[];
@@ -21,11 +21,12 @@ type AppendBuffer = {
     sb: StringBuilder
 }
 
-let abAppend  ab (s:string) = 
+let abAppend ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
 
 let initEditor() = {
-    cx = 0; cy = 0; rowoff = 0; coloff = 0;
+    cx = 0; cy = 0; rx = 0;
+    rowoff = 0; coloff = 0;
     screenrows = Console.WindowHeight;
     screencols = Console.WindowWidth;
     rows = [||]
@@ -41,10 +42,10 @@ let editorScroll e =
         elif e.cy >= e.rowoff + e.screenrows then e.cy - e.screenrows + 1
         else e.rowoff
     let coloff = 
-        if e.cx < e.coloff then e.cx
-        elif e.cx >= e.coloff + e.screencols then e.cx - e.screencols + 1
+        if e.rx < e.coloff then e.rx
+        elif e.rx >= e.coloff + e.screencols then e.rx - e.screencols + 1
         else e.coloff
-    { e with rowoff = rowoff; coloff = coloff }
+    { e with rx = e.cx; rowoff = rowoff; coloff = coloff }
 
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
@@ -74,7 +75,7 @@ let editorRefreshScreen e =
     Console.SetCursorPosition(0,0)
     let str = ab.sb.ToString()
     Console.Write(str.Substring(0, str.Length - 1))
-    Console.SetCursorPosition(e.cx - e.coloff, e.cy - e.rowoff)
+    Console.SetCursorPosition(e.rx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
     e
 
@@ -120,7 +121,7 @@ let editorProcessKeypress e =
         editorMoveCursor e c.Key
 
 let editorRow (s:string) = 
-    { chars = s; render = s.Replace("\t", "    ") }
+    { chars = s; render = s.Replace("\t", "".PadRight(4, ' ')) }
 
 let editorOpen (filename:string) e = 
     { e with rows = File.ReadAllLines filename |> Array.map editorRow }
