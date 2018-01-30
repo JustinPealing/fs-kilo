@@ -6,6 +6,7 @@ type EditorConfig = {
     cx: int;
     cy: int;
     rowoff: int;
+    coloff: int;
     screenrows: int;
     screencols: int;
     rows: string[];
@@ -19,7 +20,7 @@ let abAppend  ab (s:string) =
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
 
 let initEditor() = {
-    cx = 0; cy = 0; rowoff = 0;
+    cx = 0; cy = 0; rowoff = 0; coloff = 0;
     screenrows = Console.WindowHeight;
     screencols = Console.WindowWidth;
     rows = [||]
@@ -34,7 +35,11 @@ let editorScroll e =
         if e.cy < e.rowoff then e.cy
         elif e.cy >= e.rowoff + e.screenrows then e.cy - e.screenrows + 1
         else e.rowoff
-    { e with rowoff = rowoff }
+    let coloff = 
+        if e.cx < e.coloff then e.cx
+        elif e.cx >= e.coloff + e.screencols then e.cx - e.screencols + 1
+        else e.coloff
+    { e with rowoff = rowoff; coloff = coloff }
 
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
@@ -51,8 +56,9 @@ let editorDrawRows e ab =
             else
                 abAppend ab "~"
         else
-            let len = min e.rows.[filterrow].Length e.screencols
-            let line = e.rows.[filterrow].Substring(0, len)
+            let len = min (max 0 (e.rows.[filterrow].Length - e.coloff)) e.screencols
+            let start = min e.rows.[filterrow].Length e.coloff
+            let line = e.rows.[filterrow].Substring(start, len)
             abAppend ab line
 
 let editorRefreshScreen e =
@@ -63,7 +69,7 @@ let editorRefreshScreen e =
     Console.SetCursorPosition(0,0)
     let str = ab.sb.ToString()
     Console.Write(str.Substring(0, str.Length - 1))
-    Console.SetCursorPosition(e.cx, e.cy - e.rowoff)
+    Console.SetCursorPosition(e.cx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
     e
 
@@ -71,7 +77,7 @@ let editorMoveCursor e (key:ConsoleKey) =
     match key with
     | ConsoleKey.LeftArrow when e.cx > 0 ->
         { e with cx = e.cx - 1 }
-    | ConsoleKey.RightArrow when e.cx < e.screencols ->
+    | ConsoleKey.RightArrow ->
         { e with cx = e.cx + 1 }
     | ConsoleKey.UpArrow when e.cy > 0 ->
         { e with cy = e.cy - 1 }
