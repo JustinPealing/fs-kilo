@@ -13,7 +13,7 @@ type AppendBuffer = {
 let abAppend ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
 
-let mutable e = { cx = 0; cy = 0 }
+let initEditor = { cx = 0; cy = 0; }
 
 let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40))
@@ -32,9 +32,9 @@ let editorDrawRows ab =
         else
             abAppend ab "~"
 
-let editorRefreshScreen() =
+let editorRefreshScreen e =
     let ab = {sb = new StringBuilder()}
-    editorDrawRows ab 
+    editorDrawRows ab
 
     Console.CursorVisible <- false
     Console.SetCursorPosition(0,0)
@@ -43,32 +43,36 @@ let editorRefreshScreen() =
     Console.SetCursorPosition(e.cx, e.cy)
     Console.CursorVisible <- true
 
-let editorMoveCursor (key:ConsoleKey) = 
+let editorMoveCursor e (key:ConsoleKey) = 
     match key with
-    | ConsoleKey.LeftArrow -> if e.cx > 0 then e <- { e with cx = e.cx - 1 }
-    | ConsoleKey.RightArrow -> if e.cx < Console.WindowWidth then e <- { e with cx = e.cx + 1 }
-    | ConsoleKey.UpArrow -> if e.cy > 0 then e <- { e with cy = e.cy - 1 }
-    | ConsoleKey.DownArrow -> if e.cy < Console.WindowHeight then e <- { e with cy = e.cy + 1 }
-    | ConsoleKey.PageUp -> e <- { e with cy = 0 }
-    | ConsoleKey.PageDown -> e <- { e with cy = Console.WindowHeight - 1 }
-    | ConsoleKey.Home -> e <- { e with cx = 0 }
-    | ConsoleKey.End -> e <- { e with cx = Console.WindowWidth - 1 }
-    | _ -> ()
+    | ConsoleKey.LeftArrow when e.cx > 0 ->
+        { e with cx = e.cx - 1 }
+    | ConsoleKey.RightArrow when e.cx < Console.WindowWidth ->
+        { e with cx = e.cx + 1 }
+    | ConsoleKey.UpArrow when e.cy > 0 ->
+        { e with cy = e.cy - 1 }
+    | ConsoleKey.DownArrow when e.cy < Console.WindowHeight ->
+        { e with cy = e.cy + 1 }
+    | ConsoleKey.PageUp -> { e with cy = 0 }
+    | ConsoleKey.PageDown -> { e with cy = Console.WindowHeight - 1 }
+    | ConsoleKey.Home -> { e with cx = 0 }
+    | ConsoleKey.End -> { e with cx = Console.WindowWidth - 1 }
+    | _ -> e
 
-let editorProcessKeypress() =
+let editorProcessKeypress e =
     let c = Console.ReadKey true
     match c.KeyChar with
     | Ctrl 'Q' ->
         Console.SetCursorPosition(0,0)
         Console.Clear()
         exit 0
-    | _ -> editorMoveCursor c.Key
+    | _ ->
+        editorMoveCursor e c.Key
 
 [<EntryPoint>]
 let main argv =
-    let rec readloop() = 
-        editorRefreshScreen()
-        editorProcessKeypress()
-        readloop()
-    readloop()
+    let rec readloop e = 
+        editorRefreshScreen e
+        readloop (editorProcessKeypress e)
+    readloop initEditor 
     0
