@@ -38,7 +38,8 @@ let editorRefreshScreen() =
 
     Console.CursorVisible <- false
     Console.SetCursorPosition(0,0)
-    Console.Write(ab.sb.ToString())
+    let str = ab.sb.ToString()
+    Console.Write(str.Substring(0, str.Length - 1))
     Console.SetCursorPosition(e.cx, e.cy)
     Console.CursorVisible <- true
 
@@ -48,6 +49,8 @@ let editorMoveCursor (key:ConsoleKey) =
     | ConsoleKey.RightArrow -> if e.cx < Console.WindowWidth then e <- { e with cx = e.cx + 1 }
     | ConsoleKey.UpArrow -> if e.cy > 0 then e <- { e with cy = e.cy - 1 }
     | ConsoleKey.DownArrow -> if e.cy < Console.WindowHeight then e <- { e with cy = e.cy + 1 }
+    | ConsoleKey.PageUp -> e <- { e with cy = 0 }
+    | ConsoleKey.PageDown -> e <- { e with cy = Console.WindowHeight - 1 }
     | _ -> ()
 
 let editorProcessKeypress() =
