@@ -86,7 +86,6 @@ let editorRefreshScreen e =
     Console.Write(str.Substring(0, str.Length - 1))
     Console.SetCursorPosition(e.rx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
-    e
 
 let editorMoveCursor e (key:ConsoleKey) = 
     let handlekey e = 
@@ -149,13 +148,13 @@ let editorOpen (filename:string) e =
 
 [<EntryPoint>]
 let main argv =
-    let rec readloop e = 
-        editorScroll e
-        |> editorRefreshScreen
-        |> editorProcessKeypress
-        |> readloop
+    let rec loop e = 
+        editorRefreshScreen e
+        editorProcessKeypress e
+        |> editorScroll
+        |> loop
 
     initEditor()
     |> if argv.Length > 0 then editorOpen argv.[0] else id
-    |> readloop
+    |> loop
     0
