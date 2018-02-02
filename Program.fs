@@ -36,7 +36,16 @@ let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40))
     else None
 
+let editorRowCxToRx row cx = 
+    let mutable rx = 0
+    for j in [0..cx - 1] do
+        if row.chars.[j] = '\t' then
+            rx <- rx + (tabstop - 1) + (rx % tabstop)
+        rx <- rx + 1
+    rx
+
 let editorScroll e =
+    let rx = if e.cy < e.rows.Length then editorRowCxToRx e.rows.[e.cy] e.cx else 0
     let rowoff =
         if e.cy < e.rowoff then e.cy
         elif e.cy >= e.rowoff + e.screenrows then e.cy - e.screenrows + 1
@@ -45,7 +54,7 @@ let editorScroll e =
         if e.rx < e.coloff then e.rx
         elif e.rx >= e.coloff + e.screencols then e.rx - e.screencols + 1
         else e.coloff
-    { e with rx = e.cx; rowoff = rowoff; coloff = coloff }
+    { e with rx = rx; rowoff = rowoff; coloff = coloff }
 
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
