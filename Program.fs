@@ -129,8 +129,20 @@ let editorProcessKeypress e =
     | _ ->
         editorMoveCursor e c.Key
 
-let editorRow s = 
-    { chars = s; render = s.Replace("\t", "".PadRight(4, ' ')) }
+let editorRow (s:string) = 
+    let sb = new StringBuilder()
+    let mutable idx = 0
+    for i in [0..s.Length - 1] do
+        idx <- idx + 1
+        if s.[i] = '\t' then
+            sb.Append(" ") |> ignore
+            while (idx % tabstop <> 0) do
+                sb.Append(" ") |> ignore
+                idx <- idx + 1
+        else
+            sb.Append(s.[i]) |> ignore
+
+    { chars = s; render = sb.ToString() }
 
 let editorOpen (filename:string) e = 
     { e with rows = File.ReadAllLines filename |> Array.map editorRow }
