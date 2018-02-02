@@ -96,10 +96,10 @@ let editorMoveCursor e (key:ConsoleKey) =
             { e with cx = e.cx - 1 }
         | ConsoleKey.LeftArrow when e.cy > 0 ->
             let cy = e.cy - 1
-            { e with cy = cy; cx = e.rows.[cy].render.Length }
+            { e with cy = cy; cx = e.rows.[cy].chars.Length }
         | ConsoleKey.RightArrow when e.cx < rowlen ->
             { e with cx = e.cx + 1 }
-        | ConsoleKey.RightArrow when e.cx = rowlen ->
+        | ConsoleKey.RightArrow when e.cy < e.rows.Length && e.cx = rowlen ->
             { e with cy = e.cy + 1; cx = 0 }
         | ConsoleKey.UpArrow when e.cy > 0 ->
             { e with cy = e.cy - 1 }
