@@ -90,7 +90,7 @@ let editorRefreshScreen e =
 
 let editorMoveCursor e (key:ConsoleKey) = 
     let handlekey e = 
-        let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].render.Length
+        let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].chars.Length
         match key with
         | ConsoleKey.LeftArrow when e.cx > 0 ->
             { e with cx = e.cx - 1 }
