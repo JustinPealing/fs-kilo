@@ -37,12 +37,12 @@ let (|Ctrl|_|) k =
     else None
 
 let editorRowCxToRx row cx = 
-    let mutable rx = 0
-    for j in [0..cx - 1] do
-        if row.chars.[j] = '\t' then
-            rx <- rx + (tabstop - 1) + (rx % tabstop)
-        rx <- rx + 1
-    rx
+    let rec cxToRx (chars:string) cx rx j =
+        if j >= cx then rx
+        else
+            let delta = if chars.[j] = '\t' then tabstop - (rx % tabstop) else 1
+            cxToRx chars cx (rx + delta) (j + 1)
+    cxToRx row.chars cx 0 0
 
 let editorScroll e =
     let rx = if e.cy < e.rows.Length then editorRowCxToRx e.rows.[e.cy] e.cx else 0
