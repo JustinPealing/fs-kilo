@@ -15,7 +15,9 @@ type EditorConfig = {
     screenrows: int;
     screencols: int;
     rows: ERow[];
-    filename: string;
+    filename: string option;
+    statusmsg: string option;
+    statusmsg_time: DateTime option
 }
 
 type AppendBuffer = {
@@ -31,7 +33,8 @@ let initEditor() = {
     screenrows = Console.WindowHeight - 1;
     screencols = Console.WindowWidth;
     rows = [||];
-    filename = ""
+    filename = None;
+    statusmsg = None; statusmsg_time = None;
 }
 
 let (|Ctrl|_|) k =
@@ -59,7 +62,9 @@ let editorScroll e =
     { e with rx = rx; rowoff = rowoff; coloff = coloff }
 
 let editorDrawStatusBar e = 
-    e.filename.PadRight(Console.WindowWidth - 1, ' ')
+    let filename = if e.filename.IsSome then e.filename.Value else "[No Name]"
+    let status = sprintf "%s - %d/%d lines" filename (e.cy + 1) e.rows.Length
+    status.PadRight(Console.WindowWidth - 1, ' ')
 
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
@@ -96,6 +101,9 @@ let editorRefreshScreen e =
 
     Console.SetCursorPosition(e.rx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
+
+let editorSetStatusMessage statusmsg e =
+    { e with statusmsg = Some statusmsg; statusmsg_time = Some DateTime.Now }
 
 let rec editorMoveCursor (key:ConsoleKey) n e = 
     let handlekey e = 
@@ -159,7 +167,7 @@ let editorRow (s:string) =
 let editorOpen (filename:string) e = 
     { e with
         rows = File.ReadAllLines filename |> Array.map editorRow;
-        filename = filename }
+        filename = Some filename }
 
 [<EntryPoint>]
 let main argv =
@@ -170,6 +178,7 @@ let main argv =
         |> loop
 
     initEditor()
+    |> editorSetStatusMessage "HELP: Ctrl-Q = quit"
     |> if argv.Length > 0 then editorOpen argv.[0] else id
     |> loop
     0
