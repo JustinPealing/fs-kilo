@@ -132,7 +132,7 @@ let rec editorMoveCursor (key:ConsoleKey) n e =
             let rowoff = min e.rows.Length (e.rowoff + e.screenrows)
             { e with rowoff = rowoff; cy = rowoff }
         | ConsoleKey.Home -> { e with cx = 0 }
-        | ConsoleKey.End -> { e with cx = e.screencols - 1 }
+        | ConsoleKey.End -> { e with cx = rowlen }
         | _ -> e
 
     let result = handlekey e
