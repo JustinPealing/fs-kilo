@@ -167,7 +167,8 @@ let editorSave e =
     if e.filename.IsSome then
         let contents = e.rows |> Array.map (fun x -> x.chars)
         File.WriteAllLines(e.filename.Value, contents, Encoding.UTF8) 
-    e
+        editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) e
+    else e
 
 let editorProcessKeypress e =
     let c = Console.ReadKey true
@@ -196,7 +197,7 @@ let main argv =
         |> loop
 
     initEditor()
-    |> editorSetStatusMessage "HELP: Ctrl-Q = quit"
+    |> editorSetStatusMessage "HELP: Ctrl-S = save | Ctrl-Q = quit"
     |> if argv.Length > 0 then editorOpen argv.[0] else id
     |> loop
     0
