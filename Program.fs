@@ -14,6 +14,7 @@ type EditorConfig = {
     screenrows: int;
     screencols: int;
     rows: ERow[];
+    dirty: bool;
     filename: string option;
     statusmsg: string option;
     statusmsg_time: DateTime option }
@@ -29,6 +30,7 @@ let initEditor() = {
     screenrows = Console.WindowHeight - 2;
     screencols = Console.WindowWidth;
     rows = [||];
+    dirty = false;
     filename = None;
     statusmsg = None; statusmsg_time = None; }
 
@@ -58,7 +60,7 @@ let editorScroll e =
 
 let editorDrawStatusBar e = 
     let filename = if e.filename.IsSome then e.filename.Value else "[No Name]"
-    let status = sprintf "%s - %d/%d lines" filename (e.cy + 1) e.rows.Length
+    let status = sprintf "%s - %d/%d lines%s" filename (e.cy + 1) e.rows.Length (if e.dirty then " (modified)" else "")
     status.PadRight(Console.WindowWidth, ' ')
 
 let editorDrawMessageBar (e:EditorConfig) =
@@ -161,13 +163,13 @@ let editorRowInsertChar row at c =
 
 let editorInsertChar c e =
     Array.set e.rows e.cy (editorRowInsertChar e.rows.[e.cy] e.cx c)
-    { e with cx = e.cx + 1 }
+    { e with cx = e.cx + 1; dirty = true }
 
 let editorSave e =
     if e.filename.IsSome then
         let contents = e.rows |> Array.map (fun x -> x.chars)
         File.WriteAllLines(e.filename.Value, contents, Encoding.UTF8) 
-        editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) e
+        editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) { e with dirty = false }
     else e
 
 let editorProcessKeypress e =
