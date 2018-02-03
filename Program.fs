@@ -30,7 +30,7 @@ let abAppend ab (s:string) =
 let initEditor() = {
     cx = 0; cy = 0; rx = 0;
     rowoff = 0; coloff = 0;
-    screenrows = Console.WindowHeight - 1;
+    screenrows = Console.WindowHeight - 2;
     screencols = Console.WindowWidth;
     rows = [||];
     filename = None;
@@ -64,7 +64,15 @@ let editorScroll e =
 let editorDrawStatusBar e = 
     let filename = if e.filename.IsSome then e.filename.Value else "[No Name]"
     let status = sprintf "%s - %d/%d lines" filename (e.cy + 1) e.rows.Length
-    status.PadRight(Console.WindowWidth - 1, ' ')
+    status.PadRight(Console.WindowWidth, ' ')
+
+let editorDrawMessageBar (e:EditorConfig) =
+    let message = 
+        if e.statusmsg_time.IsSome && DateTime.Now < e.statusmsg_time.Value.AddSeconds 5.0 then
+            e.statusmsg.Value
+        else ""
+    message.PadRight(Console.WindowWidth - 1, ' ')
+
 
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
@@ -98,6 +106,7 @@ let editorRefreshScreen e =
     Console.BackgroundColor <- ConsoleColor.White
     Console.Write(editorDrawStatusBar e)
     Console.ResetColor()
+    Console.Write(editorDrawMessageBar e)
 
     Console.SetCursorPosition(e.rx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
