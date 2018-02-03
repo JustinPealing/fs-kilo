@@ -163,6 +163,12 @@ let editorInsertChar c e =
     Array.set e.rows e.cy (editorRowInsertChar e.rows.[e.cy] e.cx c)
     { e with cx = e.cx + 1 }
 
+let editorSave e =
+    if e.filename.IsSome then
+        let contents = e.rows |> Array.map (fun x -> x.chars)
+        File.WriteAllLines(e.filename.Value, contents, Encoding.UTF8) 
+    e
+
 let editorProcessKeypress e =
     let c = Console.ReadKey true
     match c.KeyChar with
@@ -170,6 +176,8 @@ let editorProcessKeypress e =
         Console.SetCursorPosition(0,0)
         Console.Clear()
         exit 0
+    | Ctrl 'S' ->
+        editorSave e
     | _ ->
         editorMoveCursor c.Key 1 e
         |> if Char.IsControl c.KeyChar then id else editorInsertChar (c.KeyChar.ToString())
