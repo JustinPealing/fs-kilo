@@ -27,7 +27,7 @@ let abAppend ab (s:string) =
 let initEditor() = {
     cx = 0; cy = 0; rx = 0;
     rowoff = 0; coloff = 0;
-    screenrows = Console.WindowHeight;
+    screenrows = Console.WindowHeight - 1;
     screencols = Console.WindowWidth;
     rows = [||]
 }
