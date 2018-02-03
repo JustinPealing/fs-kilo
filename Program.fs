@@ -142,16 +142,6 @@ let rec editorMoveCursor (key:ConsoleKey) n e =
     let result2 = if result.cx > rowlen then { result with cx = rowlen } else result
     if n <= 1 then result2 else editorMoveCursor key (n - 1) result2
 
-let editorProcessKeypress e =
-    let c = Console.ReadKey true
-    match c.KeyChar with
-    | Ctrl 'Q' ->
-        Console.SetCursorPosition(0,0)
-        Console.Clear()
-        exit 0
-    | _ ->
-        editorMoveCursor c.Key 1 e
-
 let editorRow (s:string) = 
     let sb = new StringBuilder()
     let mutable idx = 0
@@ -165,6 +155,24 @@ let editorRow (s:string) =
         else
             sb.Append(s.[i]) |> ignore
     { chars = s; render = sb.ToString() }
+
+let editorRowInsertChar row at c = 
+    editorRow (row.chars.Insert(at, c))
+
+let editorInsertChar c e =
+    Array.set e.rows e.cy (editorRowInsertChar e.rows.[e.cy] e.cx c)
+    { e with cx = e.cx + 1 }
+
+let editorProcessKeypress e =
+    let c = Console.ReadKey true
+    match c.KeyChar with
+    | Ctrl 'Q' ->
+        Console.SetCursorPosition(0,0)
+        Console.Clear()
+        exit 0
+    | _ ->
+        editorMoveCursor c.Key 1 e
+        |> if Char.IsControl c.KeyChar then id else editorInsertChar (c.KeyChar.ToString())
 
 let editorOpen (filename:string) e = 
     { e with
