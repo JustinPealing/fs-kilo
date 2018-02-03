@@ -15,6 +15,7 @@ type EditorConfig = {
     screenrows: int;
     screencols: int;
     rows: ERow[];
+    filename: string;
 }
 
 type AppendBuffer = {
@@ -29,7 +30,8 @@ let initEditor() = {
     rowoff = 0; coloff = 0;
     screenrows = Console.WindowHeight - 1;
     screencols = Console.WindowWidth;
-    rows = [||]
+    rows = [||];
+    filename = ""
 }
 
 let (|Ctrl|_|) k =
@@ -55,6 +57,9 @@ let editorScroll e =
         elif e.rx >= e.coloff + e.screencols then e.rx - e.screencols + 1
         else e.coloff
     { e with rx = rx; rowoff = rowoff; coloff = coloff }
+
+let editorDrawStatusBar e = 
+    e.filename.PadRight(Console.WindowWidth - 1, ' ')
 
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
@@ -82,8 +87,13 @@ let editorRefreshScreen e =
 
     Console.CursorVisible <- false
     Console.SetCursorPosition(0,0)
-    let str = ab.sb.ToString()
-    Console.Write(str.Substring(0, str.Length - 1))
+    Console.Write(ab.sb.ToString())
+
+    Console.ForegroundColor <- ConsoleColor.Black
+    Console.BackgroundColor <- ConsoleColor.White
+    Console.Write(editorDrawStatusBar e)
+    Console.ResetColor()
+
     Console.SetCursorPosition(e.rx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
 
@@ -147,7 +157,9 @@ let editorRow (s:string) =
     { chars = s; render = sb.ToString() }
 
 let editorOpen (filename:string) e = 
-    { e with rows = File.ReadAllLines filename |> Array.map editorRow }
+    { e with
+        rows = File.ReadAllLines filename |> Array.map editorRow;
+        filename = filename }
 
 [<EntryPoint>]
 let main argv =
