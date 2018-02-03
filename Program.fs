@@ -129,7 +129,7 @@ let rec editorMoveCursor (key:ConsoleKey) n e =
             { e with cy = e.cy + 1; cx = 0 }
         | ConsoleKey.UpArrow when e.cy > 0 ->
             { e with cy = e.cy - 1 }
-        | ConsoleKey.DownArrow when e.cy < e.rows.Length ->
+        | ConsoleKey.DownArrow when e.cy < e.rows.Length - 1 ->
             { e with cy = e.cy + 1 }
         | ConsoleKey.PageUp ->
             let rowoff = max 0 (e.rowoff - e.screenrows)
