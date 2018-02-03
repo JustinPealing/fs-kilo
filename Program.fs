@@ -6,8 +6,7 @@ let tabstop = 4
 
 type ERow = {
     chars: string
-    render: string
-}
+    render: string }
 
 type EditorConfig = {
     cx: int; cy: int; rx: int;
@@ -17,12 +16,9 @@ type EditorConfig = {
     rows: ERow[];
     filename: string option;
     statusmsg: string option;
-    statusmsg_time: DateTime option
-}
+    statusmsg_time: DateTime option }
 
-type AppendBuffer = {
-    sb: StringBuilder
-}
+type AppendBuffer = { sb: StringBuilder }
 
 let abAppend ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
@@ -34,8 +30,7 @@ let initEditor() = {
     screencols = Console.WindowWidth;
     rows = [||];
     filename = None;
-    statusmsg = None; statusmsg_time = None;
-}
+    statusmsg = None; statusmsg_time = None; }
 
 let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40))
@@ -72,7 +67,6 @@ let editorDrawMessageBar (e:EditorConfig) =
             e.statusmsg.Value
         else ""
     message.PadRight(Console.WindowWidth - 1, ' ')
-
 
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
@@ -170,7 +164,6 @@ let editorRow (s:string) =
                 idx <- idx + 1
         else
             sb.Append(s.[i]) |> ignore
-
     { chars = s; render = sb.ToString() }
 
 let editorOpen (filename:string) e = 
