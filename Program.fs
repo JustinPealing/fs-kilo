@@ -87,7 +87,7 @@ let editorRefreshScreen e =
     Console.SetCursorPosition(e.rx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
 
-let editorMoveCursor e (key:ConsoleKey) = 
+let rec editorMoveCursor (key:ConsoleKey) n e = 
     let handlekey e = 
         let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].chars.Length
         match key with
@@ -116,7 +116,8 @@ let editorMoveCursor e (key:ConsoleKey) =
     let rowlen = 
         if result.cy >= e.rows.Length then 0
         else e.rows.[result.cy].render.Length
-    if result.cx > rowlen then { result with cx = rowlen } else result
+    let result2 = if result.cx > rowlen then { result with cx = rowlen } else result
+    if n <= 1 then result2 else editorMoveCursor key (n - 1) result2
 
 let editorProcessKeypress e =
     let c = Console.ReadKey true
@@ -126,7 +127,7 @@ let editorProcessKeypress e =
         Console.Clear()
         exit 0
     | _ ->
-        editorMoveCursor e c.Key
+        editorMoveCursor c.Key 1 e
 
 let editorRow (s:string) = 
     let sb = new StringBuilder()
