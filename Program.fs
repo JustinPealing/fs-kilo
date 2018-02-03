@@ -105,9 +105,11 @@ let rec editorMoveCursor (key:ConsoleKey) n e =
         | ConsoleKey.DownArrow when e.cy < e.rows.Length ->
             { e with cy = e.cy + 1 }
         | ConsoleKey.PageUp ->
-            { e with cy = max 0 (e.cy - e.screenrows) }
+            let rowoff = max 0 (e.rowoff - e.screenrows)
+            { e with rowoff = rowoff; cy = min (rowoff + e.screenrows) e.rows.Length }
         | ConsoleKey.PageDown ->
-            { e with cy = min e.rows.Length (e.cy + e.screenrows) }
+            let rowoff = min e.rows.Length (e.rowoff + e.screenrows)
+            { e with rowoff = rowoff; cy = rowoff }
         | ConsoleKey.Home -> { e with cx = 0 }
         | ConsoleKey.End -> { e with cx = e.screencols - 1 }
         | _ -> e
