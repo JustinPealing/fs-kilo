@@ -168,8 +168,11 @@ let editorInsertChar c e =
 let editorSave e =
     if e.filename.IsSome then
         let contents = e.rows |> Array.map (fun x -> x.chars)
-        File.WriteAllLines(e.filename.Value, contents, Encoding.UTF8) 
-        editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) { e with dirty = false }
+        try
+            File.WriteAllLines(e.filename.Value, contents, Encoding.UTF8) 
+            editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) { e with dirty = false }
+        with
+        | ex -> editorSetStatusMessage ex.Message e
     else e
 
 let editorProcessKeypress e =
