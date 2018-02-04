@@ -4,39 +4,38 @@ open System.Text
 
 let tabstop = 4
 
-type ERow = {
-    chars: string
-    render: string }
+type ERow = 
+    { chars: string
+      render: string }
 
-type EditorConfig = {
-    cx: int; cy: int; rx: int;
-    rowoff: int; coloff: int;
-    screenrows: int;
-    screencols: int;
-    rows: ERow[];
-    dirty: bool;
-    filename: string option;
-    statusmsg: string option;
-    statusmsg_time: DateTime option }
+type EditorConfig = 
+    { cx: int; cy: int; rx: int;
+      rowoff: int; coloff: int;
+      screenrows: int;
+      screencols: int;
+      rows: ERow[];
+      dirty: bool;
+      filename: string option;
+      statusmsg: string option;
+      statusmsg_time: DateTime option }
 
 type AppendBuffer = { sb: StringBuilder }
 
 let abAppend ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
 
-let initEditor() = {
-    cx = 0; cy = 0; rx = 0;
-    rowoff = 0; coloff = 0;
-    screenrows = Console.WindowHeight - 2;
-    screencols = Console.WindowWidth;
-    rows = [||];
-    dirty = false;
-    filename = None;
-    statusmsg = None; statusmsg_time = None; }
+let initEditor() = 
+    { cx = 0; cy = 0; rx = 0;
+      rowoff = 0; coloff = 0;
+      screenrows = Console.WindowHeight - 2;
+      screencols = Console.WindowWidth;
+      rows = [||];
+      dirty = false;
+      filename = None;
+      statusmsg = None; statusmsg_time = None; }
 
 let (|Ctrl|_|) k =
-    if Char.IsControl k then Some (char ((int k) ||| 0x40))
-    else None
+    if Char.IsControl k then Some (char ((int k) ||| 0x40)) else None
 
 let editorRowCxToRx row cx = 
     let rec cxToRx (chars:string) cx rx j =
@@ -91,7 +90,7 @@ let editorDrawRows e ab =
             abAppend ab line
 
 let editorRefreshScreen e =
-    let ab = {sb = new StringBuilder()}
+    let ab = { sb = new StringBuilder() }
     editorDrawRows e ab
 
     Console.CursorVisible <- false
