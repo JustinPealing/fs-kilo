@@ -162,9 +162,18 @@ let editorRow (s:string) =
 let editorRowInsertChar row at c = 
     editorRow (row.chars.Insert(at, c))
 
+let editorRowDeleteChar row at =
+    editorRow (row.chars.Remove(at, 1))
+
 let editorInsertChar c e =
     Array.set e.rows e.cy (editorRowInsertChar e.rows.[e.cy] e.cx c)
     { e with cx = e.cx + 1; dirty = true }
+
+let editorDeleteChar e =
+    if e.cx > 0 then
+        Array.set e.rows e.cy (editorRowDeleteChar e.rows.[e.cy] (e.cx - 1))
+        { e with cx = e.cx - 1; dirty = true }
+    else e
 
 let editorSave e =
     if e.filename.IsSome then
@@ -190,8 +199,11 @@ let editorProcessKeypress e =
     | Ctrl 'S' ->
         editorSave e
     | _ ->
-        editorMoveCursor c.Key 1 e
-        |> if Char.IsControl c.KeyChar then id else editorInsertChar (c.KeyChar.ToString())
+        match c.Key with
+        | ConsoleKey.Backspace -> editorDeleteChar e
+        | _ ->
+            editorMoveCursor c.Key 1 e
+            |> if Char.IsControl c.KeyChar then id else editorInsertChar (c.KeyChar.ToString())
 
 let editorOpen (filename:string) e = 
     { e with
