@@ -17,7 +17,8 @@ type EditorConfig =
       dirty: bool;
       filename: string option;
       statusmsg: string option;
-      statusmsg_time: DateTime option }
+      statusmsg_time: DateTime option;
+      quit_times: int } 
 
 type AppendBuffer = { sb: StringBuilder }
 
@@ -32,7 +33,8 @@ let initEditor() =
       rows = [||];
       dirty = false;
       filename = None;
-      statusmsg = None; statusmsg_time = None; }
+      statusmsg = None; statusmsg_time = None;
+      quit_times = 3; }
 
 let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40)) else None
@@ -178,9 +180,13 @@ let editorProcessKeypress e =
     let c = Console.ReadKey true
     match c.KeyChar with
     | Ctrl 'Q' ->
-        Console.SetCursorPosition(0,0)
-        Console.Clear()
-        exit 0
+        if e.dirty && e.quit_times > 0 then
+            let message = sprintf "WARNING!!! File has unsaved changes. Press Ctrl-Q %d more times to quit." e.quit_times
+            editorSetStatusMessage message { e with quit_times = e.quit_times - 1 }
+        else 
+            Console.SetCursorPosition(0,0)
+            Console.Clear()
+            exit 0
     | Ctrl 'S' ->
         editorSave e
     | _ ->
