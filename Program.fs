@@ -169,11 +169,20 @@ let editorInsertChar c e =
     Array.set e.rows e.cy (editorRowInsertChar e.rows.[e.cy] e.cx c)
     { e with cx = e.cx + 1; dirty = true }
 
+let removeAt index input =
+    input
+    |> Array.mapi (fun i el -> (i <> index, el))
+    |> Array.filter fst |> Array.map snd
+
 let editorDeleteChar e =
-    if e.cx > 0 then
+    if e.cx = 0 && e.cy = 0 then e
+    elif e.cx > 0 then
         Array.set e.rows e.cy (editorRowDeleteChar e.rows.[e.cy] (e.cx - 1))
         { e with cx = e.cx - 1; dirty = true }
-    else e
+    else
+        let cx = e.rows.[e.cy - 1].chars.Length
+        Array.set e.rows (e.cy - 1) (editorRow (e.rows.[e.cy - 1].chars + e.rows.[e.cy].chars))
+        { e with cx = cx; cy = e.cy - 1; rows = removeAt e.cy e.rows; dirty = true }
 
 let editorSave e =
     if e.filename.IsSome then
