@@ -141,7 +141,7 @@ let rec editorMoveCursor (key:ConsoleKey) n e =
     let result = handlekey e
     let rowlen = 
         if result.cy >= e.rows.Length then 0
-        else e.rows.[result.cy].render.Length
+        else e.rows.[result.cy].chars.Length
     let result2 = if result.cx > rowlen then { result with cx = rowlen } else result
     if n <= 1 then result2 else editorMoveCursor key (n - 1) result2
 
