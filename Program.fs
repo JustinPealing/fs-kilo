@@ -169,10 +169,30 @@ let editorInsertChar c e =
     Array.set e.rows e.cy (editorRowInsertChar e.rows.[e.cy] e.cx c)
     { e with cx = e.cx + 1; dirty = true }
 
+let rec insert v i l =
+    match i, l with
+    | 0, xs -> v::xs
+    | i, x::xs -> x::insert v (i - 1) xs
+    | i, [] -> failwith "index out of range"
+
 let removeAt index input =
     input
     |> Array.mapi (fun i el -> (i <> index, el))
     |> Array.filter fst |> Array.map snd
+
+let editorInsertRow at str e =
+    let row = editorRow str
+    { e with dirty = true; cy = e.cy + 1; cx = 0; rows = insert row at (e.rows |> Array.toList) |> List.toArray }
+
+let editorInsertNewLine e =
+    if e.cx = 0 then
+        editorInsertRow e.cy "" e
+    else
+        let str = e.rows.[e.cy].chars
+        let firstRow = str.Substring(0, e.cx)
+        let secondRow = str.Substring(e.cx, str.Length - e.cx)
+        Array.set e.rows e.cy (editorRow firstRow)
+        editorInsertRow (e.cy + 1) secondRow e
 
 let editorDeleteChar e =
     if e.cx = 0 && e.cy = 0 then e
@@ -210,6 +230,7 @@ let editorProcessKeypress e =
     | _ ->
         match c.Key with
         | ConsoleKey.Backspace -> editorDeleteChar e
+        | ConsoleKey.Enter -> editorInsertNewLine e
         | _ ->
             editorMoveCursor c.Key 1 e
             |> if Char.IsControl c.KeyChar then id else editorInsertChar (c.KeyChar.ToString())
