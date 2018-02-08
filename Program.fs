@@ -20,6 +20,20 @@ type EditorConfig =
       statusmsg_time: DateTime option;
       quit_times: int } 
 
+let editorRow (s:string) = 
+    let sb = new StringBuilder()
+    let mutable idx = 0
+    for i in [0..s.Length - 1] do
+        idx <- idx + 1
+        if s.[i] = '\t' then
+            sb.Append(" ") |> ignore
+            while (idx % tabstop <> 0) do
+                sb.Append(" ") |> ignore
+                idx <- idx + 1
+        else
+            sb.Append(s.[i]) |> ignore
+    { chars = s; render = sb.ToString() }
+
 type AppendBuffer = { sb: StringBuilder }
 
 let abAppend ab (s:string) = 
@@ -30,7 +44,7 @@ let initEditor() =
       rowoff = 0; coloff = 0;
       screenrows = Console.WindowHeight - 2;
       screencols = Console.WindowWidth;
-      rows = [||];
+      rows = [|editorRow ""|];
       dirty = false;
       filename = None;
       statusmsg = None; statusmsg_time = None;
@@ -111,6 +125,19 @@ let editorRefreshScreen e =
 let editorSetStatusMessage statusmsg e =
     { e with statusmsg = Some statusmsg; statusmsg_time = Some DateTime.Now }
 
+let rec editorPrompt prompt value e = 
+    e
+    |> editorSetStatusMessage (prompt + value)
+    |> editorRefreshScreen
+
+    let c = Console.ReadKey true
+    if c.Key = ConsoleKey.Enter then
+        value
+    elif not (Char.IsControl c.KeyChar) then
+        editorPrompt prompt (value + c.KeyChar.ToString()) e
+    else
+        editorPrompt prompt value e
+
 let rec editorMoveCursor (key:ConsoleKey) n e = 
     let handlekey e = 
         let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].chars.Length
@@ -144,20 +171,6 @@ let rec editorMoveCursor (key:ConsoleKey) n e =
         else e.rows.[result.cy].chars.Length
     let result2 = if result.cx > rowlen then { result with cx = rowlen } else result
     if n <= 1 then result2 else editorMoveCursor key (n - 1) result2
-
-let editorRow (s:string) = 
-    let sb = new StringBuilder()
-    let mutable idx = 0
-    for i in [0..s.Length - 1] do
-        idx <- idx + 1
-        if s.[i] = '\t' then
-            sb.Append(" ") |> ignore
-            while (idx % tabstop <> 0) do
-                sb.Append(" ") |> ignore
-                idx <- idx + 1
-        else
-            sb.Append(s.[i]) |> ignore
-    { chars = s; render = sb.ToString() }
 
 let editorRowInsertChar row at c = 
     editorRow (row.chars.Insert(at, c))
@@ -205,11 +218,14 @@ let editorDeleteChar e =
         { e with cx = cx; cy = e.cy - 1; rows = removeAt e.cy e.rows; dirty = true }
 
 let editorSave e =
-    if e.filename.IsSome then
+    let filename =
+        if e.filename.IsSome then e.filename.Value
+        else editorPrompt "Save as: " "" e
+    if filename.Length > 0 then
         let contents = e.rows |> Array.map (fun x -> x.chars)
         try
-            File.WriteAllLines(e.filename.Value, contents, Encoding.UTF8) 
-            editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) { e with dirty = false }
+            File.WriteAllLines(filename, contents, Encoding.UTF8) 
+            editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) { e with dirty = false; filename = Some filename }
         with
         | ex -> editorSetStatusMessage ex.Message e
     else e
