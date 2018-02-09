@@ -125,7 +125,7 @@ let editorRefreshScreen e =
 let editorSetStatusMessage statusmsg e =
     { e with statusmsg = Some statusmsg; statusmsg_time = Some DateTime.Now }
 
-let rec editorPrompt prompt value e = 
+let rec editorPrompt prompt (value:string) e = 
     e
     |> editorSetStatusMessage (prompt + value)
     |> editorRefreshScreen
@@ -135,6 +135,8 @@ let rec editorPrompt prompt value e =
         Some value
     elif c.Key = ConsoleKey.Escape then
         None
+    elif value.Length > 0 && (c.Key = ConsoleKey.Backspace || c.Key = ConsoleKey.Delete) then
+        editorPrompt prompt (value.Substring(0, value.Length - 1)) e
     elif not (Char.IsControl c.KeyChar) then
         editorPrompt prompt (value + c.KeyChar.ToString()) e
     else
