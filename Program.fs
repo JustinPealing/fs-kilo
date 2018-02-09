@@ -132,7 +132,9 @@ let rec editorPrompt prompt value e =
 
     let c = Console.ReadKey true
     if c.Key = ConsoleKey.Enter then
-        value
+        Some value
+    elif c.Key = ConsoleKey.Escape then
+        None
     elif not (Char.IsControl c.KeyChar) then
         editorPrompt prompt (value + c.KeyChar.ToString()) e
     else
@@ -219,16 +221,17 @@ let editorDeleteChar e =
 
 let editorSave e =
     let filename =
-        if e.filename.IsSome then e.filename.Value
+        if e.filename.IsSome then Some e.filename.Value
         else editorPrompt "Save as: " "" e
-    if filename.Length > 0 then
+    if filename.IsSome then
         let contents = e.rows |> Array.map (fun x -> x.chars)
         try
-            File.WriteAllLines(filename, contents, Encoding.UTF8) 
-            editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) { e with dirty = false; filename = Some filename }
+            File.WriteAllLines(filename.Value, contents, Encoding.UTF8) 
+            editorSetStatusMessage (sprintf "%d lines written to disk" e.rows.Length) { e with dirty = false; filename = Some filename.Value }
         with
         | ex -> editorSetStatusMessage ex.Message e
-    else e
+    else
+        editorSetStatusMessage "Save aborted" e
 
 let editorProcessKeypress e =
     let c = Console.ReadKey true
