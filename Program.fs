@@ -235,6 +235,16 @@ let editorSave e =
     else
         editorSetStatusMessage "Save aborted" e
 
+let editorFind e = 
+    let query = editorPrompt "Search: " "" e
+    if query.IsSome then
+        let cy = Array.tryFindIndex (fun r -> r.chars.Contains(query.Value)) e.rows
+        if cy.IsSome then
+            let cx = e.rows.[cy.Value].chars.IndexOf(query.Value)
+            { e with cy = cy.Value; cx = cx; }
+        else e
+    else e
+
 let editorProcessKeypress e =
     let c = Console.ReadKey true
     match c.KeyChar with
@@ -246,8 +256,8 @@ let editorProcessKeypress e =
             Console.SetCursorPosition(0,0)
             Console.Clear()
             exit 0
-    | Ctrl 'S' ->
-        editorSave e
+    | Ctrl 'S' -> editorSave e
+    | Ctrl 'G' -> editorFind e
     | _ ->
         match c.Key with
         | ConsoleKey.Backspace -> editorDeleteChar e
