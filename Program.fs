@@ -280,7 +280,7 @@ let main argv =
         |> loop
 
     initEditor()
-    |> editorSetStatusMessage "HELP: Ctrl-S = save | Ctrl-Q = quit"
+    |> editorSetStatusMessage "HELP: Ctrl-S = save | Ctrl-Q = quit | Ctrl-G = find"
     |> if argv.Length > 0 then editorOpen argv.[0] else id
     |> loop
     0
