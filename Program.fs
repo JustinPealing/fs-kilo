@@ -61,6 +61,15 @@ let editorRowCxToRx row cx =
             cxToRx chars cx (rx + delta) (j + 1)
     cxToRx row.chars cx 0 0
 
+let editorInsertRow at str e =
+    let rec insert v i l =
+        match i, l with
+        | 0, xs -> v::xs
+        | i, x::xs -> x::insert v (i - 1) xs
+        | i, [] -> failwith "index out of range"
+    let row = editorRow str
+    { e with dirty = true; cy = e.cy + 1; cx = 0; rows = insert row at (e.rows |> Array.toList) |> List.toArray }
+
 let editorScroll e =
     let rx = if e.cy < e.rows.Length then editorRowCxToRx e.rows.[e.cy] e.cx else 0
     let rowoff =
@@ -186,20 +195,10 @@ let editorInsertChar c e =
     Array.set e.rows e.cy (editorRowInsertChar e.rows.[e.cy] e.cx c)
     { e with cx = e.cx + 1; dirty = true }
 
-let rec insert v i l =
-    match i, l with
-    | 0, xs -> v::xs
-    | i, x::xs -> x::insert v (i - 1) xs
-    | i, [] -> failwith "index out of range"
-
 let removeAt index input =
     input
     |> Array.mapi (fun i el -> (i <> index, el))
     |> Array.filter fst |> Array.map snd
-
-let editorInsertRow at str e =
-    let row = editorRow str
-    { e with dirty = true; cy = e.cy + 1; cx = 0; rows = insert row at (e.rows |> Array.toList) |> List.toArray }
 
 let editorInsertNewLine e =
     if e.cx = 0 then
