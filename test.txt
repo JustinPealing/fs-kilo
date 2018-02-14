@@ -1,4 +1,0 @@
-﻿a	hello+_
-avaa	hello
-		hello
-a	a	hello
