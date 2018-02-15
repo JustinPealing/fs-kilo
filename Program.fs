@@ -39,17 +39,6 @@ type AppendBuffer = { sb: StringBuilder }
 let abAppend ab (s:string) = 
     ab.sb.Append(s.PadRight(Console.WindowWidth, ' ')) |> ignore
 
-let initEditor() = 
-    { cx = 0; cy = 0; rx = 0;
-      rowoff = 0; coloff = 0;
-      screenrows = Console.WindowHeight - 2;
-      screencols = Console.WindowWidth;
-      rows = [|editorRow ""|];
-      dirty = false;
-      filename = None;
-      statusmsg = None; statusmsg_time = None;
-      quit_times = 3; }
-
 let (|Ctrl|_|) k =
     if Char.IsControl k then Some (char ((int k) ||| 0x40)) else None
 
@@ -244,6 +233,11 @@ let editorFind e =
         else e
     else e
 
+let editorOpen (filename:string) e = 
+    { e with
+        rows = File.ReadAllLines filename |> Array.map editorRow;
+        filename = Some filename }
+
 let editorProcessKeypress e =
     let c = Console.ReadKey true
     match c.KeyChar with
@@ -265,10 +259,16 @@ let editorProcessKeypress e =
             editorMoveCursor c.Key 1 e
             |> if Char.IsControl c.KeyChar then id else editorInsertChar (c.KeyChar.ToString())
 
-let editorOpen (filename:string) e = 
-    { e with
-        rows = File.ReadAllLines filename |> Array.map editorRow;
-        filename = Some filename }
+let initEditor() = 
+    { cx = 0; cy = 0; rx = 0;
+      rowoff = 0; coloff = 0;
+      screenrows = Console.WindowHeight - 2;
+      screencols = Console.WindowWidth;
+      rows = [|editorRow ""|];
+      dirty = false;
+      filename = None;
+      statusmsg = None; statusmsg_time = None;
+      quit_times = 3; }
 
 [<EntryPoint>]
 let main argv =
