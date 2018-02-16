@@ -140,40 +140,6 @@ let rec editorPrompt prompt (value:string) e =
     else
         editorPrompt prompt value e
 
-let rec editorMoveCursor (key:ConsoleKey) n e = 
-    let handlekey e = 
-        let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].chars.Length
-        match key with
-        | ConsoleKey.LeftArrow when e.cx > 0 ->
-            { e with cx = e.cx - 1 }
-        | ConsoleKey.LeftArrow when e.cy > 0 ->
-            let cy = e.cy - 1
-            { e with cy = cy; cx = e.rows.[cy].chars.Length }
-        | ConsoleKey.RightArrow when e.cx < rowlen ->
-            { e with cx = e.cx + 1 }
-        | ConsoleKey.RightArrow when e.cy < e.rows.Length && e.cx = rowlen ->
-            { e with cy = e.cy + 1; cx = 0 }
-        | ConsoleKey.UpArrow when e.cy > 0 ->
-            { e with cy = e.cy - 1 }
-        | ConsoleKey.DownArrow when e.cy < e.rows.Length - 1 ->
-            { e with cy = e.cy + 1 }
-        | ConsoleKey.PageUp ->
-            let rowoff = max 0 (e.rowoff - e.screenrows)
-            { e with rowoff = rowoff; cy = min (rowoff + e.screenrows) e.rows.Length }
-        | ConsoleKey.PageDown ->
-            let rowoff = min e.rows.Length (e.rowoff + e.screenrows)
-            { e with rowoff = rowoff; cy = rowoff }
-        | ConsoleKey.Home -> { e with cx = 0 }
-        | ConsoleKey.End -> { e with cx = rowlen }
-        | _ -> e
-
-    let result = handlekey e
-    let rowlen = 
-        if result.cy >= e.rows.Length then 0
-        else e.rows.[result.cy].chars.Length
-    let result2 = if result.cx > rowlen then { result with cx = rowlen } else result
-    if n <= 1 then result2 else editorMoveCursor key (n - 1) result2
-
 let editorRowInsertChar row at c = 
     editorRow (row.chars.Insert(at, c))
 
@@ -237,6 +203,40 @@ let editorOpen (filename:string) e =
     { e with
         rows = File.ReadAllLines filename |> Array.map editorRow;
         filename = Some filename }
+
+let rec editorMoveCursor (key:ConsoleKey) n e = 
+    let handlekey e = 
+        let rowlen = if e.cy >= e.rows.Length then 0 else e.rows.[e.cy].chars.Length
+        match key with
+        | ConsoleKey.LeftArrow when e.cx > 0 ->
+            { e with cx = e.cx - 1 }
+        | ConsoleKey.LeftArrow when e.cy > 0 ->
+            let cy = e.cy - 1
+            { e with cy = cy; cx = e.rows.[cy].chars.Length }
+        | ConsoleKey.RightArrow when e.cx < rowlen ->
+            { e with cx = e.cx + 1 }
+        | ConsoleKey.RightArrow when e.cy < e.rows.Length && e.cx = rowlen ->
+            { e with cy = e.cy + 1; cx = 0 }
+        | ConsoleKey.UpArrow when e.cy > 0 ->
+            { e with cy = e.cy - 1 }
+        | ConsoleKey.DownArrow when e.cy < e.rows.Length - 1 ->
+            { e with cy = e.cy + 1 }
+        | ConsoleKey.PageUp ->
+            let rowoff = max 0 (e.rowoff - e.screenrows)
+            { e with rowoff = rowoff; cy = min (rowoff + e.screenrows) e.rows.Length }
+        | ConsoleKey.PageDown ->
+            let rowoff = min e.rows.Length (e.rowoff + e.screenrows)
+            { e with rowoff = rowoff; cy = rowoff }
+        | ConsoleKey.Home -> { e with cx = 0 }
+        | ConsoleKey.End -> { e with cx = rowlen }
+        | _ -> e
+
+    let result = handlekey e
+    let rowlen = 
+        if result.cy >= e.rows.Length then 0
+        else e.rows.[result.cy].chars.Length
+    let result2 = if result.cx > rowlen then { result with cx = rowlen } else result
+    if n <= 1 then result2 else editorMoveCursor key (n - 1) result2
 
 let editorProcessKeypress e =
     let c = Console.ReadKey true
