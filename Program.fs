@@ -120,26 +120,6 @@ let editorRefreshScreen e =
     Console.SetCursorPosition(e.rx - e.coloff, e.cy - e.rowoff)
     Console.CursorVisible <- true
 
-let editorSetStatusMessage statusmsg e =
-    { e with statusmsg = Some statusmsg; statusmsg_time = Some DateTime.Now }
-
-let rec editorPrompt prompt (value:string) e = 
-    e
-    |> editorSetStatusMessage (prompt + value)
-    |> editorRefreshScreen
-
-    let c = Console.ReadKey true
-    if c.Key = ConsoleKey.Enter then
-        Some value
-    elif c.Key = ConsoleKey.Escape then
-        None
-    elif value.Length > 0 && (c.Key = ConsoleKey.Backspace || c.Key = ConsoleKey.Delete) then
-        editorPrompt prompt (value.Substring(0, value.Length - 1)) e
-    elif not (Char.IsControl c.KeyChar) then
-        editorPrompt prompt (value + c.KeyChar.ToString()) e
-    else
-        editorPrompt prompt value e
-
 let editorRowInsertChar row at c = 
     editorRow (row.chars.Insert(at, c))
 
@@ -175,6 +155,31 @@ let editorDeleteChar e =
         Array.set e.rows (e.cy - 1) (editorRow (e.rows.[e.cy - 1].chars + e.rows.[e.cy].chars))
         { e with cx = cx; cy = e.cy - 1; rows = removeAt e.cy e.rows; dirty = true }
 
+let editorOpen (filename:string) e = 
+    { e with
+        rows = File.ReadAllLines filename |> Array.map editorRow;
+        filename = Some filename }
+
+let editorSetStatusMessage statusmsg e =
+    { e with statusmsg = Some statusmsg; statusmsg_time = Some DateTime.Now }
+
+let rec editorPrompt prompt (value:string) e = 
+    e
+    |> editorSetStatusMessage (prompt + value)
+    |> editorRefreshScreen
+
+    let c = Console.ReadKey true
+    if c.Key = ConsoleKey.Enter then
+        Some value
+    elif c.Key = ConsoleKey.Escape then
+        None
+    elif value.Length > 0 && (c.Key = ConsoleKey.Backspace || c.Key = ConsoleKey.Delete) then
+        editorPrompt prompt (value.Substring(0, value.Length - 1)) e
+    elif not (Char.IsControl c.KeyChar) then
+        editorPrompt prompt (value + c.KeyChar.ToString()) e
+    else
+        editorPrompt prompt value e
+
 let editorSave e =
     let filename =
         if e.filename.IsSome then Some e.filename.Value
@@ -198,11 +203,6 @@ let editorFind e =
             { e with cy = cy.Value; cx = cx; }
         else e
     else e
-
-let editorOpen (filename:string) e = 
-    { e with
-        rows = File.ReadAllLines filename |> Array.map editorRow;
-        filename = Some filename }
 
 let rec editorMoveCursor (key:ConsoleKey) n e = 
     let handlekey e = 
