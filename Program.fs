@@ -71,18 +71,6 @@ let editorScroll e =
         else e.coloff
     { e with rx = rx; rowoff = rowoff; coloff = coloff }
 
-let editorDrawStatusBar e = 
-    let filename = if e.filename.IsSome then e.filename.Value else "[No Name]"
-    let status = sprintf "%s - %d/%d lines%s" filename (e.cy + 1) e.rows.Length (if e.dirty then " (modified)" else "")
-    status.PadRight(Console.WindowWidth, ' ')
-
-let editorDrawMessageBar (e:EditorConfig) =
-    let message = 
-        if e.statusmsg_time.IsSome && DateTime.Now < e.statusmsg_time.Value.AddSeconds 5.0 then
-            e.statusmsg.Value
-        else ""
-    message.PadRight(Console.WindowWidth - 1, ' ')
-
 let editorDrawRows e ab =
     for y in [0..e.screenrows - 1] do
         let filterrow = y + e.rowoff;
@@ -102,6 +90,18 @@ let editorDrawRows e ab =
             let start = min e.rows.[filterrow].render.Length e.coloff
             let line = e.rows.[filterrow].render.Substring(start, len)
             abAppend ab line
+
+let editorDrawStatusBar e = 
+    let filename = if e.filename.IsSome then e.filename.Value else "[No Name]"
+    let status = sprintf "%s - %d/%d lines%s" filename (e.cy + 1) e.rows.Length (if e.dirty then " (modified)" else "")
+    status.PadRight(Console.WindowWidth, ' ')
+
+let editorDrawMessageBar (e:EditorConfig) =
+    let message = 
+        if e.statusmsg_time.IsSome && DateTime.Now < e.statusmsg_time.Value.AddSeconds 5.0 then
+            e.statusmsg.Value
+        else ""
+    message.PadRight(Console.WindowWidth - 1, ' ')
 
 let editorRefreshScreen e =
     let ab = { sb = new StringBuilder() }
