@@ -1,6 +1,6 @@
 # fs-kilo
 
-This is a port of the [Kilo text editor](https://github.com/antirez/kilo) to F#. Also see the [Build your own text editor](https://viewsourcecode.org/snaptoken/kilo/index.html) series.
+This is a F# port of the Kilo text editor from the [Build your own text editor](https://viewsourcecode.org/snaptoken/kilo/index.html) tutorial series.
 
 To run
 
